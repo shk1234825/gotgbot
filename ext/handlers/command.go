@@ -2,10 +2,10 @@ package handlers
 
 import (
 	"strings"
-	"unicode/utf8"
 
 	"github.com/PaulSonOfLars/gotgbot/v2"
 	"github.com/PaulSonOfLars/gotgbot/v2/ext"
+	"github.com/PaulSonOfLars/gotgbot/v2/ext/handlers/filters/message"
 )
 
 // Command is the go-to handler for setting up Commands in your bot. By default, it will use telegram-native commands
@@ -23,6 +23,8 @@ type Command struct {
 // NewCommand creates a new case-insensitive command.
 // By default, commands do not work on edited messages, or channel posts. These can be enabled by setting the
 // AllowEdited and AllowChannel fields respectively.
+//
+// Note: If more control over commands is desired, consider using NewMessage with a message.CommandName filter.
 func NewCommand(c string, r Response) Command {
 	return Command{
 		Triggers:     []rune{'/'},
@@ -56,7 +58,7 @@ func (c Command) CheckUpdate(b *gotgbot.Bot, ctx *ext.Context) bool {
 		if ctx.Message.GetText() == "" {
 			return false
 		}
-		return c.checkMessage(b, ctx.Message)
+		return message.CommandNameTriggers(b, c.Command, c.Triggers)(ctx.Message)
 	}
 
 	// if no edits and message is edited
@@ -64,21 +66,21 @@ func (c Command) CheckUpdate(b *gotgbot.Bot, ctx *ext.Context) bool {
 		if ctx.EditedMessage.GetText() == "" {
 			return false
 		}
-		return c.checkMessage(b, ctx.EditedMessage)
+		return message.CommandNameTriggers(b, c.Command, c.Triggers)(ctx.EditedMessage)
 	}
 	// if no channel and message is channel message
 	if c.AllowChannel && ctx.ChannelPost != nil {
 		if ctx.ChannelPost.GetText() == "" {
 			return false
 		}
-		return c.checkMessage(b, ctx.ChannelPost)
+		return message.CommandNameTriggers(b, c.Command, c.Triggers)(ctx.ChannelPost)
 	}
 	// if no channel, no edits, and post is edited
 	if c.AllowChannel && c.AllowEdited && ctx.EditedChannelPost != nil {
 		if ctx.EditedChannelPost.GetText() == "" {
 			return false
 		}
-		return c.checkMessage(b, ctx.EditedChannelPost)
+		return message.CommandNameTriggers(b, c.Command, c.Triggers)(ctx.EditedChannelPost)
 	}
 
 	return false
@@ -90,32 +92,4 @@ func (c Command) HandleUpdate(b *gotgbot.Bot, ctx *ext.Context) error {
 
 func (c Command) Name() string {
 	return "command_" + c.Command
-}
-
-func (c Command) checkMessage(b *gotgbot.Bot, msg *gotgbot.Message) bool {
-	text := msg.GetText()
-
-	var cmd string
-	for _, t := range c.Triggers {
-		if r, _ := utf8.DecodeRuneInString(text); r != t {
-			continue
-		}
-
-		split := strings.Split(strings.ToLower(strings.Fields(text)[0]), "@")
-		if len(split) > 1 && split[1] != strings.ToLower(b.User.Username) {
-			return false
-		}
-		cmd = split[0][1:]
-		break
-	}
-	if cmd == "" {
-		return false
-	}
-
-	ents := msg.GetEntities()
-	if len(ents) != 0 && ents[0].Offset == 0 && ents[0].Type != "bot_command" {
-		return false
-	}
-
-	return cmd == c.Command
 }

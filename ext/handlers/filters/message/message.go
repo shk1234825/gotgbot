@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/PaulSonOfLars/gotgbot/v2"
 	"github.com/PaulSonOfLars/gotgbot/v2/ext/handlers/filters"
@@ -134,9 +135,53 @@ func Caption(msg *gotgbot.Message) bool {
 	return msg.Caption != ""
 }
 
+// Command returns true if the message starts with a bot_command entitiy.
 func Command(msg *gotgbot.Message) bool {
 	ents := msg.GetEntities()
 	return len(ents) > 0 && ents[0].Type == "bot_command" && ents[0].Offset == 0
+}
+
+// CommandName returns true if the message starts with a bot_command entity matching the name provided.
+// The bot object is required to ensure that the /command@username format is respected.
+func CommandName(b *gotgbot.Bot, name string) func(msg *gotgbot.Message) bool {
+	return CommandNameTriggers(b, name, []rune("/"))
+}
+
+// CommandNameTriggers returns true is the message starts with one of the triggers provided, and expects position 0 to
+// either be a bot_command entity or no entity at all.
+// This means that this filter will not trigger if it has a a code/bold/italics entity at position 0, allowing bot users
+// to "escape" commands.
+//
+// Note: if you are looking to standardise the triggers across your bot, it could be a good idea to create a helper
+// function around this to define all your triggers in one place.
+func CommandNameTriggers(b *gotgbot.Bot, command string, triggers []rune) func(msg *gotgbot.Message) bool {
+	return func(msg *gotgbot.Message) bool {
+		text := msg.GetText()
+
+		var msgCmd string
+		for _, t := range triggers {
+			if r, _ := utf8.DecodeRuneInString(text); r != t {
+				continue
+			}
+
+			split := strings.Split(strings.ToLower(strings.Fields(text)[0]), "@")
+			if len(split) > 1 && split[1] != strings.ToLower(b.User.Username) {
+				return false
+			}
+			msgCmd = split[0][1:]
+			break
+		}
+		if msgCmd == "" {
+			return false
+		}
+
+		ents := msg.GetEntities()
+		if len(ents) != 0 && ents[0].Offset == 0 && ents[0].Type != "bot_command" {
+			return false
+		}
+
+		return msgCmd == command
+	}
 }
 
 func Animation(msg *gotgbot.Message) bool {
