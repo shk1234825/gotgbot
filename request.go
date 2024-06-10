@@ -21,7 +21,7 @@ const (
 
 type BotClient interface {
 	// RequestWithContext submits a POST HTTP request a bot API instance.
-	RequestWithContext(ctx context.Context, token string, method string, params map[string]string, data map[string]FileReader, opts *RequestOpts) (json.RawMessage, error)
+	RequestWithContext(ctx context.Context, token string, method string, params map[string]string, data map[string]InputFile, opts *RequestOpts) (json.RawMessage, error)
 	// TimeoutContext calculates the required timeout contect required given the passed RequestOpts, and any default opts defined by the BotClient.
 	TimeoutContext(opts *RequestOpts) (context.Context, context.CancelFunc)
 	// GetAPIURL gets the URL of the API either in use by the bot or defined in the request opts.
@@ -126,7 +126,7 @@ func timeoutFromOpts(opts *RequestOpts) (context.Context, context.CancelFunc) {
 //   - data: map of any files to be sending to the telegram API.
 //   - opts: request opts to use. Note: Timeout opts are ignored when used in RequestWithContext. Timeout handling is the
 //     responsibility of the caller/context owner.
-func (bot *BaseBotClient) RequestWithContext(ctx context.Context, token string, method string, params map[string]string, data map[string]FileReader, opts *RequestOpts) (json.RawMessage, error) {
+func (bot *BaseBotClient) RequestWithContext(ctx context.Context, token string, method string, params map[string]string, data map[string]InputFile, opts *RequestOpts) (json.RawMessage, error) {
 	b := &bytes.Buffer{}
 
 	var contentType string
@@ -176,7 +176,7 @@ func (bot *BaseBotClient) RequestWithContext(ctx context.Context, token string, 
 	return r.Result, nil
 }
 
-func fillBuffer(b *bytes.Buffer, params map[string]string, data map[string]FileReader) (string, error) {
+func fillBuffer(b *bytes.Buffer, params map[string]string, data map[string]InputFile) (string, error) {
 	w := multipart.NewWriter(b)
 
 	for k, v := range params {

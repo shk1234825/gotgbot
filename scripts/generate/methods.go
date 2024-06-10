@@ -226,7 +226,7 @@ func (m MethodDescription) argsToValues(d APIDescription, methodName string, def
 	}
 
 	if hasData {
-		return "\ndata := map[string]FileReader{}" + bd.String(), true, nil
+		return "\ndata := map[string]InputFile{}" + bd.String(), true, nil
 	}
 
 	return bd.String(), false, nil
@@ -297,7 +297,7 @@ func stringComplexField(d APIDescription, f Field, fieldType string, goParam str
 	bd := strings.Builder{}
 
 	// Special case for InputFiles.
-	if fieldType == tgTypeInputFile || fieldType == typeInputFileOrString {
+	if fieldType == tgTypeInputFile {
 		err := inputFileBranchTmpl.Execute(&bd, readerBranchesData{
 			GoParam:       goParam,
 			DefaultReturn: defaultRetVal,
@@ -399,13 +399,11 @@ type readerBranchesData struct {
 
 // TODO: Make sure this doesn't allow strings, ONLY readers!
 const inputFileBranch = `
-if {{.GoParam}} != nil {
 	key, err := {{.GoParam}}.Attach("{{.Name}}", data)
 	if err != nil {
 		return {{.DefaultReturn}}, err
 	}
-	v["{{.Name}}"] = key
-}`
+	v["{{.Name}}"] = key`
 
 const inputParamsBranch = `
 inputBs, err := {{.GoParam}}.InputParams("{{.Name}}" , data)

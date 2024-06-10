@@ -149,7 +149,7 @@ func containsInputFile(d APIDescription, tgType TypeDescription, checked map[str
 			return false, "", err
 		}
 
-		if goType == tgTypeInputFile || goType == typeInputFileOrString || goType == typeInputString {
+		if goType == tgTypeInputFile {
 			return true, f.Name, nil
 		}
 
@@ -485,7 +485,7 @@ func generateGenericInterfaceType(d APIDescription, name string, subtypes []Type
 	}
 	if hasInputFile {
 		bd.WriteString("\n// InputParams allows for uploading attachments with files.")
-		bd.WriteString("\nInputParams(string, map[string]FileReader) ([]byte, error)")
+		bd.WriteString("\nInputParams(string, map[string]InputFile) ([]byte, error)")
 	}
 
 	if len(commonFields) > 0 && constantField != "" {
@@ -756,16 +756,14 @@ type inputParamsMethodData struct {
 }
 
 const inputParamsMethod = `
-func (v {{.Type}}) InputParams(mediaName string, data map[string]FileReader) ([]byte, error) {
-	if v.{{.Field}} != nil {
-		key, err := v.{{.Field}}.Attach(mediaName, data)
-		if err != nil {
-			return nil, err
-		}
-		// Now that we've attached the file as a piece of data, we can pass in its file reference.
-		v.{{.Field}} = FileString{Value: key}
-	} 
-	
+func (v {{.Type}}) InputParams(mediaName string, data map[string]InputFile) ([]byte, error) {
+	key, err := v.{{.Field}}.Attach(mediaName, data)
+	if err != nil {
+		return nil, err
+	}
+	// Now that we've attached the file as a piece of data, we can pass in its file reference.
+	v.{{.Field}} = InputFile{Value: key}
+
 	return json.Marshal(v)
 }
 `

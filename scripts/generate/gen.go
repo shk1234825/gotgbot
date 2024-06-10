@@ -226,9 +226,7 @@ const (
 	tgTypeInputMedia = "InputMedia"
 
 	// Custom types for this lib.
-	typeReplyMarkup       = "ReplyMarkup"
-	typeInputFileOrString = "InputFileOrString"
-	typeInputString       = "InputString"
+	typeReplyMarkup = "ReplyMarkup"
 )
 
 func generate(d APIDescription) error {
@@ -322,7 +320,7 @@ func isTgStructType(d APIDescription, goType string) bool {
 func (f Field) getPreferredType(d APIDescription) (string, error) {
 	if f.Name == "media" {
 		if len(f.Types) == 1 && f.Types[0] == "String" {
-			return typeInputFileOrString, nil
+			return tgTypeInputFile, nil
 		}
 		var arrayType bool
 		// TODO: check against API description type
@@ -394,7 +392,7 @@ func (f Field) getPreferredType(d APIDescription) (string, error) {
 
 	if len(f.Types) == 2 {
 		if f.Types[0] == tgTypeInputFile && f.Types[1] == tgTypeString {
-			return typeInputFileOrString, nil
+			return tgTypeInputFile, nil
 		} else if f.Types[0] == tgTypeInteger && f.Types[1] == tgTypeString {
 			return toGoType(f.Types[0]), nil
 		}

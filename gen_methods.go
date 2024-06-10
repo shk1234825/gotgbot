@@ -24,7 +24,7 @@ type AddStickerToSetOpts struct {
 //   - opts (type AddStickerToSetOpts): All optional parameters.
 func (bot *Bot) AddStickerToSet(userId int64, name string, sticker InputSticker, opts *AddStickerToSetOpts) (bool, error) {
 	v := map[string]string{}
-	data := map[string]FileReader{}
+	data := map[string]InputFile{}
 	v["user_id"] = strconv.FormatInt(userId, 10)
 	v["name"] = name
 	inputBs, err := sticker.InputParams("sticker", data)
@@ -809,7 +809,7 @@ type CreateNewStickerSetOpts struct {
 //   - opts (type CreateNewStickerSetOpts): All optional parameters.
 func (bot *Bot) CreateNewStickerSet(userId int64, name string, title string, stickers []InputSticker, opts *CreateNewStickerSetOpts) (bool, error) {
 	v := map[string]string{}
-	data := map[string]FileReader{}
+	data := map[string]InputFile{}
 	v["user_id"] = strconv.FormatInt(userId, 10)
 	v["name"] = name
 	v["title"] = title
@@ -1472,7 +1472,7 @@ type EditMessageMediaOpts struct {
 //   - opts (type EditMessageMediaOpts): All optional parameters.
 func (bot *Bot) EditMessageMedia(media InputMedia, opts *EditMessageMediaOpts) (*Message, bool, error) {
 	v := map[string]string{}
-	data := map[string]FileReader{}
+	data := map[string]InputFile{}
 	inputBs, err := media.InputParams("media", data)
 	if err != nil {
 		return nil, false, fmt.Errorf("failed to marshal field media: %w", err)
@@ -2774,7 +2774,7 @@ type ReplaceStickerInSetOpts struct {
 //   - opts (type ReplaceStickerInSetOpts): All optional parameters.
 func (bot *Bot) ReplaceStickerInSet(userId int64, name string, oldSticker string, sticker InputSticker, opts *ReplaceStickerInSetOpts) (bool, error) {
 	v := map[string]string{}
-	data := map[string]FileReader{}
+	data := map[string]InputFile{}
 	v["user_id"] = strconv.FormatInt(userId, 10)
 	v["name"] = name
 	v["old_sticker"] = oldSticker
@@ -2889,7 +2889,7 @@ type SendAnimationOpts struct {
 	// Animation height
 	Height int64
 	// Thumbnail of the file sent; can be ignored if thumbnail generation for the file is supported server-side. The thumbnail should be in JPEG format and less than 200 kB in size. A thumbnail's width and height should not exceed 320. Ignored if the file is not uploaded using multipart/form-data. Thumbnails can't be reused and can be only uploaded as a new file, so you can pass "attach://<file_attach_name>" if the thumbnail was uploaded using multipart/form-data under <file_attach_name>. More information on Sending Files: https://core.telegram.org/bots/api#sending-files
-	Thumbnail InputFileOrString
+	Thumbnail InputFile
 	// Animation caption (may also be used when resending animation by file_id), 0-1024 characters after entities parsing
 	Caption string
 	// Mode for parsing entities in the animation caption. See formatting options for more details.
@@ -2918,19 +2918,17 @@ type SendAnimationOpts struct {
 //
 // Use this method to send animation files (GIF or H.264/MPEG-4 AVC video without sound). On success, the sent Message is returned. Bots can currently send animation files of up to 50 MB in size, this limit may be changed in the future.
 //   - chatId (type int64): Unique identifier for the target chat
-//   - animation (type InputFileOrString): Animation to send. Pass a file_id as String to send an animation that exists on the Telegram servers (recommended), pass an HTTP URL as a String for Telegram to get an animation from the Internet, or upload a new animation using multipart/form-data. More information on Sending Files: https://core.telegram.org/bots/api#sending-files
+//   - animation (type InputFile): Animation to send. Pass a file_id as String to send an animation that exists on the Telegram servers (recommended), pass an HTTP URL as a String for Telegram to get an animation from the Internet, or upload a new animation using multipart/form-data. More information on Sending Files: https://core.telegram.org/bots/api#sending-files
 //   - opts (type SendAnimationOpts): All optional parameters.
-func (bot *Bot) SendAnimation(chatId int64, animation InputFileOrString, opts *SendAnimationOpts) (*Message, error) {
+func (bot *Bot) SendAnimation(chatId int64, animation InputFile, opts *SendAnimationOpts) (*Message, error) {
 	v := map[string]string{}
-	data := map[string]FileReader{}
+	data := map[string]InputFile{}
 	v["chat_id"] = strconv.FormatInt(chatId, 10)
-	if animation != nil {
-		key, err := animation.Attach("animation", data)
-		if err != nil {
-			return nil, err
-		}
-		v["animation"] = key
+	key, err := animation.Attach("animation", data)
+	if err != nil {
+		return nil, err
 	}
+	v["animation"] = key
 	if opts != nil {
 		v["business_connection_id"] = opts.BusinessConnectionId
 		if opts.MessageThreadId != 0 {
@@ -2945,13 +2943,11 @@ func (bot *Bot) SendAnimation(chatId int64, animation InputFileOrString, opts *S
 		if opts.Height != 0 {
 			v["height"] = strconv.FormatInt(opts.Height, 10)
 		}
-		if opts.Thumbnail != nil {
-			key, err := opts.Thumbnail.Attach("thumbnail", data)
-			if err != nil {
-				return nil, err
-			}
-			v["thumbnail"] = key
+		key, err := opts.Thumbnail.Attach("thumbnail", data)
+		if err != nil {
+			return nil, err
 		}
+		v["thumbnail"] = key
 		v["caption"] = opts.Caption
 		v["parse_mode"] = opts.ParseMode
 		if opts.CaptionEntities != nil {
@@ -3015,7 +3011,7 @@ type SendAudioOpts struct {
 	// Track name
 	Title string
 	// Thumbnail of the file sent; can be ignored if thumbnail generation for the file is supported server-side. The thumbnail should be in JPEG format and less than 200 kB in size. A thumbnail's width and height should not exceed 320. Ignored if the file is not uploaded using multipart/form-data. Thumbnails can't be reused and can be only uploaded as a new file, so you can pass "attach://<file_attach_name>" if the thumbnail was uploaded using multipart/form-data under <file_attach_name>. More information on Sending Files: https://core.telegram.org/bots/api#sending-files
-	Thumbnail InputFileOrString
+	Thumbnail InputFile
 	// Sends the message silently. Users will receive a notification with no sound.
 	DisableNotification bool
 	// Protects the contents of the sent message from forwarding and saving
@@ -3035,19 +3031,17 @@ type SendAudioOpts struct {
 // Use this method to send audio files, if you want Telegram clients to display them in the music player. Your audio must be in the .MP3 or .M4A format. On success, the sent Message is returned. Bots can currently send audio files of up to 50 MB in size, this limit may be changed in the future.
 // For sending voice messages, use the sendVoice method instead.
 //   - chatId (type int64): Unique identifier for the target chat
-//   - audio (type InputFileOrString): Audio file to send. Pass a file_id as String to send an audio file that exists on the Telegram servers (recommended), pass an HTTP URL as a String for Telegram to get an audio file from the Internet, or upload a new one using multipart/form-data. More information on Sending Files: https://core.telegram.org/bots/api#sending-files
+//   - audio (type InputFile): Audio file to send. Pass a file_id as String to send an audio file that exists on the Telegram servers (recommended), pass an HTTP URL as a String for Telegram to get an audio file from the Internet, or upload a new one using multipart/form-data. More information on Sending Files: https://core.telegram.org/bots/api#sending-files
 //   - opts (type SendAudioOpts): All optional parameters.
-func (bot *Bot) SendAudio(chatId int64, audio InputFileOrString, opts *SendAudioOpts) (*Message, error) {
+func (bot *Bot) SendAudio(chatId int64, audio InputFile, opts *SendAudioOpts) (*Message, error) {
 	v := map[string]string{}
-	data := map[string]FileReader{}
+	data := map[string]InputFile{}
 	v["chat_id"] = strconv.FormatInt(chatId, 10)
-	if audio != nil {
-		key, err := audio.Attach("audio", data)
-		if err != nil {
-			return nil, err
-		}
-		v["audio"] = key
+	key, err := audio.Attach("audio", data)
+	if err != nil {
+		return nil, err
 	}
+	v["audio"] = key
 	if opts != nil {
 		v["business_connection_id"] = opts.BusinessConnectionId
 		if opts.MessageThreadId != 0 {
@@ -3067,13 +3061,11 @@ func (bot *Bot) SendAudio(chatId int64, audio InputFileOrString, opts *SendAudio
 		}
 		v["performer"] = opts.Performer
 		v["title"] = opts.Title
-		if opts.Thumbnail != nil {
-			key, err := opts.Thumbnail.Attach("thumbnail", data)
-			if err != nil {
-				return nil, err
-			}
-			v["thumbnail"] = key
+		key, err := opts.Thumbnail.Attach("thumbnail", data)
+		if err != nil {
+			return nil, err
 		}
+		v["thumbnail"] = key
 		v["disable_notification"] = strconv.FormatBool(opts.DisableNotification)
 		v["protect_content"] = strconv.FormatBool(opts.ProtectContent)
 		v["message_effect_id"] = opts.MessageEffectId
@@ -3301,7 +3293,7 @@ type SendDocumentOpts struct {
 	// Unique identifier for the target message thread (topic) of the forum; for forum supergroups only
 	MessageThreadId int64
 	// Thumbnail of the file sent; can be ignored if thumbnail generation for the file is supported server-side. The thumbnail should be in JPEG format and less than 200 kB in size. A thumbnail's width and height should not exceed 320. Ignored if the file is not uploaded using multipart/form-data. Thumbnails can't be reused and can be only uploaded as a new file, so you can pass "attach://<file_attach_name>" if the thumbnail was uploaded using multipart/form-data under <file_attach_name>. More information on Sending Files: https://core.telegram.org/bots/api#sending-files
-	Thumbnail InputFileOrString
+	Thumbnail InputFile
 	// Document caption (may also be used when resending documents by file_id), 0-1024 characters after entities parsing
 	Caption string
 	// Mode for parsing entities in the document caption. See formatting options for more details.
@@ -3328,31 +3320,27 @@ type SendDocumentOpts struct {
 //
 // Use this method to send general files. On success, the sent Message is returned. Bots can currently send files of any type of up to 50 MB in size, this limit may be changed in the future.
 //   - chatId (type int64): Unique identifier for the target chat
-//   - document (type InputFileOrString): File to send. Pass a file_id as String to send a file that exists on the Telegram servers (recommended), pass an HTTP URL as a String for Telegram to get a file from the Internet, or upload a new one using multipart/form-data. More information on Sending Files: https://core.telegram.org/bots/api#sending-files
+//   - document (type InputFile): File to send. Pass a file_id as String to send a file that exists on the Telegram servers (recommended), pass an HTTP URL as a String for Telegram to get a file from the Internet, or upload a new one using multipart/form-data. More information on Sending Files: https://core.telegram.org/bots/api#sending-files
 //   - opts (type SendDocumentOpts): All optional parameters.
-func (bot *Bot) SendDocument(chatId int64, document InputFileOrString, opts *SendDocumentOpts) (*Message, error) {
+func (bot *Bot) SendDocument(chatId int64, document InputFile, opts *SendDocumentOpts) (*Message, error) {
 	v := map[string]string{}
-	data := map[string]FileReader{}
+	data := map[string]InputFile{}
 	v["chat_id"] = strconv.FormatInt(chatId, 10)
-	if document != nil {
-		key, err := document.Attach("document", data)
-		if err != nil {
-			return nil, err
-		}
-		v["document"] = key
+	key, err := document.Attach("document", data)
+	if err != nil {
+		return nil, err
 	}
+	v["document"] = key
 	if opts != nil {
 		v["business_connection_id"] = opts.BusinessConnectionId
 		if opts.MessageThreadId != 0 {
 			v["message_thread_id"] = strconv.FormatInt(opts.MessageThreadId, 10)
 		}
-		if opts.Thumbnail != nil {
-			key, err := opts.Thumbnail.Attach("thumbnail", data)
-			if err != nil {
-				return nil, err
-			}
-			v["thumbnail"] = key
+		key, err := opts.Thumbnail.Attach("thumbnail", data)
+		if err != nil {
+			return nil, err
 		}
+		v["thumbnail"] = key
 		v["caption"] = opts.Caption
 		v["parse_mode"] = opts.ParseMode
 		if opts.CaptionEntities != nil {
@@ -3717,7 +3705,7 @@ type SendMediaGroupOpts struct {
 //   - opts (type SendMediaGroupOpts): All optional parameters.
 func (bot *Bot) SendMediaGroup(chatId int64, media []InputMedia, opts *SendMediaGroupOpts) ([]Message, error) {
 	v := map[string]string{}
-	data := map[string]FileReader{}
+	data := map[string]InputFile{}
 	v["chat_id"] = strconv.FormatInt(chatId, 10)
 	if media != nil {
 		var rawList []json.RawMessage
@@ -3888,19 +3876,17 @@ type SendPhotoOpts struct {
 //
 // Use this method to send photos. On success, the sent Message is returned.
 //   - chatId (type int64): Unique identifier for the target chat
-//   - photo (type InputFileOrString): Photo to send. Pass a file_id as String to send a photo that exists on the Telegram servers (recommended), pass an HTTP URL as a String for Telegram to get a photo from the Internet, or upload a new photo using multipart/form-data. The photo must be at most 10 MB in size. The photo's width and height must not exceed 10000 in total. Width and height ratio must be at most 20. More information on Sending Files: https://core.telegram.org/bots/api#sending-files
+//   - photo (type InputFile): Photo to send. Pass a file_id as String to send a photo that exists on the Telegram servers (recommended), pass an HTTP URL as a String for Telegram to get a photo from the Internet, or upload a new photo using multipart/form-data. The photo must be at most 10 MB in size. The photo's width and height must not exceed 10000 in total. Width and height ratio must be at most 20. More information on Sending Files: https://core.telegram.org/bots/api#sending-files
 //   - opts (type SendPhotoOpts): All optional parameters.
-func (bot *Bot) SendPhoto(chatId int64, photo InputFileOrString, opts *SendPhotoOpts) (*Message, error) {
+func (bot *Bot) SendPhoto(chatId int64, photo InputFile, opts *SendPhotoOpts) (*Message, error) {
 	v := map[string]string{}
-	data := map[string]FileReader{}
+	data := map[string]InputFile{}
 	v["chat_id"] = strconv.FormatInt(chatId, 10)
-	if photo != nil {
-		key, err := photo.Attach("photo", data)
-		if err != nil {
-			return nil, err
-		}
-		v["photo"] = key
+	key, err := photo.Attach("photo", data)
+	if err != nil {
+		return nil, err
 	}
+	v["photo"] = key
 	if opts != nil {
 		v["business_connection_id"] = opts.BusinessConnectionId
 		if opts.MessageThreadId != 0 {
@@ -4107,19 +4093,17 @@ type SendStickerOpts struct {
 //
 // Use this method to send static .WEBP, animated .TGS, or video .WEBM stickers. On success, the sent Message is returned.
 //   - chatId (type int64): Unique identifier for the target chat
-//   - sticker (type InputFileOrString): Sticker to send. Pass a file_id as String to send a file that exists on the Telegram servers (recommended), pass an HTTP URL as a String for Telegram to get a .WEBP sticker from the Internet, or upload a new .WEBP, .TGS, or .WEBM sticker using multipart/form-data. More information on Sending Files: https://core.telegram.org/bots/api#sending-files. Video and animated stickers can't be sent via an HTTP URL.
+//   - sticker (type InputFile): Sticker to send. Pass a file_id as String to send a file that exists on the Telegram servers (recommended), pass an HTTP URL as a String for Telegram to get a .WEBP sticker from the Internet, or upload a new .WEBP, .TGS, or .WEBM sticker using multipart/form-data. More information on Sending Files: https://core.telegram.org/bots/api#sending-files. Video and animated stickers can't be sent via an HTTP URL.
 //   - opts (type SendStickerOpts): All optional parameters.
-func (bot *Bot) SendSticker(chatId int64, sticker InputFileOrString, opts *SendStickerOpts) (*Message, error) {
+func (bot *Bot) SendSticker(chatId int64, sticker InputFile, opts *SendStickerOpts) (*Message, error) {
 	v := map[string]string{}
-	data := map[string]FileReader{}
+	data := map[string]InputFile{}
 	v["chat_id"] = strconv.FormatInt(chatId, 10)
-	if sticker != nil {
-		key, err := sticker.Attach("sticker", data)
-		if err != nil {
-			return nil, err
-		}
-		v["sticker"] = key
+	key, err := sticker.Attach("sticker", data)
+	if err != nil {
+		return nil, err
 	}
+	v["sticker"] = key
 	if opts != nil {
 		v["business_connection_id"] = opts.BusinessConnectionId
 		if opts.MessageThreadId != 0 {
@@ -4258,7 +4242,7 @@ type SendVideoOpts struct {
 	// Video height
 	Height int64
 	// Thumbnail of the file sent; can be ignored if thumbnail generation for the file is supported server-side. The thumbnail should be in JPEG format and less than 200 kB in size. A thumbnail's width and height should not exceed 320. Ignored if the file is not uploaded using multipart/form-data. Thumbnails can't be reused and can be only uploaded as a new file, so you can pass "attach://<file_attach_name>" if the thumbnail was uploaded using multipart/form-data under <file_attach_name>. More information on Sending Files: https://core.telegram.org/bots/api#sending-files
-	Thumbnail InputFileOrString
+	Thumbnail InputFile
 	// Video caption (may also be used when resending videos by file_id), 0-1024 characters after entities parsing
 	Caption string
 	// Mode for parsing entities in the video caption. See formatting options for more details.
@@ -4289,19 +4273,17 @@ type SendVideoOpts struct {
 //
 // Use this method to send video files, Telegram clients support MPEG4 videos (other formats may be sent as Document). On success, the sent Message is returned. Bots can currently send video files of up to 50 MB in size, this limit may be changed in the future.
 //   - chatId (type int64): Unique identifier for the target chat
-//   - video (type InputFileOrString): Video to send. Pass a file_id as String to send a video that exists on the Telegram servers (recommended), pass an HTTP URL as a String for Telegram to get a video from the Internet, or upload a new video using multipart/form-data. More information on Sending Files: https://core.telegram.org/bots/api#sending-files
+//   - video (type InputFile): Video to send. Pass a file_id as String to send a video that exists on the Telegram servers (recommended), pass an HTTP URL as a String for Telegram to get a video from the Internet, or upload a new video using multipart/form-data. More information on Sending Files: https://core.telegram.org/bots/api#sending-files
 //   - opts (type SendVideoOpts): All optional parameters.
-func (bot *Bot) SendVideo(chatId int64, video InputFileOrString, opts *SendVideoOpts) (*Message, error) {
+func (bot *Bot) SendVideo(chatId int64, video InputFile, opts *SendVideoOpts) (*Message, error) {
 	v := map[string]string{}
-	data := map[string]FileReader{}
+	data := map[string]InputFile{}
 	v["chat_id"] = strconv.FormatInt(chatId, 10)
-	if video != nil {
-		key, err := video.Attach("video", data)
-		if err != nil {
-			return nil, err
-		}
-		v["video"] = key
+	key, err := video.Attach("video", data)
+	if err != nil {
+		return nil, err
 	}
+	v["video"] = key
 	if opts != nil {
 		v["business_connection_id"] = opts.BusinessConnectionId
 		if opts.MessageThreadId != 0 {
@@ -4316,13 +4298,11 @@ func (bot *Bot) SendVideo(chatId int64, video InputFileOrString, opts *SendVideo
 		if opts.Height != 0 {
 			v["height"] = strconv.FormatInt(opts.Height, 10)
 		}
-		if opts.Thumbnail != nil {
-			key, err := opts.Thumbnail.Attach("thumbnail", data)
-			if err != nil {
-				return nil, err
-			}
-			v["thumbnail"] = key
+		key, err := opts.Thumbnail.Attach("thumbnail", data)
+		if err != nil {
+			return nil, err
 		}
+		v["thumbnail"] = key
 		v["caption"] = opts.Caption
 		v["parse_mode"] = opts.ParseMode
 		if opts.CaptionEntities != nil {
@@ -4379,7 +4359,7 @@ type SendVideoNoteOpts struct {
 	// Video width and height, i.e. diameter of the video message
 	Length int64
 	// Thumbnail of the file sent; can be ignored if thumbnail generation for the file is supported server-side. The thumbnail should be in JPEG format and less than 200 kB in size. A thumbnail's width and height should not exceed 320. Ignored if the file is not uploaded using multipart/form-data. Thumbnails can't be reused and can be only uploaded as a new file, so you can pass "attach://<file_attach_name>" if the thumbnail was uploaded using multipart/form-data under <file_attach_name>. More information on Sending Files: https://core.telegram.org/bots/api#sending-files
-	Thumbnail InputFileOrString
+	Thumbnail InputFile
 	// Sends the message silently. Users will receive a notification with no sound.
 	DisableNotification bool
 	// Protects the contents of the sent message from forwarding and saving
@@ -4398,19 +4378,17 @@ type SendVideoNoteOpts struct {
 //
 // As of v.4.0, Telegram clients support rounded square MPEG4 videos of up to 1 minute long. Use this method to send video messages. On success, the sent Message is returned.
 //   - chatId (type int64): Unique identifier for the target chat
-//   - videoNote (type InputFileOrString): Video note to send. Pass a file_id as String to send a video note that exists on the Telegram servers (recommended) or upload a new video using multipart/form-data. More information on Sending Files: https://core.telegram.org/bots/api#sending-files. Sending video notes by a URL is currently unsupported
+//   - videoNote (type InputFile): Video note to send. Pass a file_id as String to send a video note that exists on the Telegram servers (recommended) or upload a new video using multipart/form-data. More information on Sending Files: https://core.telegram.org/bots/api#sending-files. Sending video notes by a URL is currently unsupported
 //   - opts (type SendVideoNoteOpts): All optional parameters.
-func (bot *Bot) SendVideoNote(chatId int64, videoNote InputFileOrString, opts *SendVideoNoteOpts) (*Message, error) {
+func (bot *Bot) SendVideoNote(chatId int64, videoNote InputFile, opts *SendVideoNoteOpts) (*Message, error) {
 	v := map[string]string{}
-	data := map[string]FileReader{}
+	data := map[string]InputFile{}
 	v["chat_id"] = strconv.FormatInt(chatId, 10)
-	if videoNote != nil {
-		key, err := videoNote.Attach("video_note", data)
-		if err != nil {
-			return nil, err
-		}
-		v["video_note"] = key
+	key, err := videoNote.Attach("video_note", data)
+	if err != nil {
+		return nil, err
 	}
+	v["video_note"] = key
 	if opts != nil {
 		v["business_connection_id"] = opts.BusinessConnectionId
 		if opts.MessageThreadId != 0 {
@@ -4422,13 +4400,11 @@ func (bot *Bot) SendVideoNote(chatId int64, videoNote InputFileOrString, opts *S
 		if opts.Length != 0 {
 			v["length"] = strconv.FormatInt(opts.Length, 10)
 		}
-		if opts.Thumbnail != nil {
-			key, err := opts.Thumbnail.Attach("thumbnail", data)
-			if err != nil {
-				return nil, err
-			}
-			v["thumbnail"] = key
+		key, err := opts.Thumbnail.Attach("thumbnail", data)
+		if err != nil {
+			return nil, err
 		}
+		v["thumbnail"] = key
 		v["disable_notification"] = strconv.FormatBool(opts.DisableNotification)
 		v["protect_content"] = strconv.FormatBool(opts.ProtectContent)
 		v["message_effect_id"] = opts.MessageEffectId
@@ -4494,19 +4470,17 @@ type SendVoiceOpts struct {
 //
 // Use this method to send audio files, if you want Telegram clients to display the file as a playable voice message. For this to work, your audio must be in an .OGG file encoded with OPUS, or in .MP3 format, or in .M4A format (other formats may be sent as Audio or Document). On success, the sent Message is returned. Bots can currently send voice messages of up to 50 MB in size, this limit may be changed in the future.
 //   - chatId (type int64): Unique identifier for the target chat
-//   - voice (type InputFileOrString): Audio file to send. Pass a file_id as String to send a file that exists on the Telegram servers (recommended), pass an HTTP URL as a String for Telegram to get a file from the Internet, or upload a new one using multipart/form-data. More information on Sending Files: https://core.telegram.org/bots/api#sending-files
+//   - voice (type InputFile): Audio file to send. Pass a file_id as String to send a file that exists on the Telegram servers (recommended), pass an HTTP URL as a String for Telegram to get a file from the Internet, or upload a new one using multipart/form-data. More information on Sending Files: https://core.telegram.org/bots/api#sending-files
 //   - opts (type SendVoiceOpts): All optional parameters.
-func (bot *Bot) SendVoice(chatId int64, voice InputFileOrString, opts *SendVoiceOpts) (*Message, error) {
+func (bot *Bot) SendVoice(chatId int64, voice InputFile, opts *SendVoiceOpts) (*Message, error) {
 	v := map[string]string{}
-	data := map[string]FileReader{}
+	data := map[string]InputFile{}
 	v["chat_id"] = strconv.FormatInt(chatId, 10)
-	if voice != nil {
-		key, err := voice.Attach("voice", data)
-		if err != nil {
-			return nil, err
-		}
-		v["voice"] = key
+	key, err := voice.Attach("voice", data)
+	if err != nil {
+		return nil, err
 	}
+	v["voice"] = key
 	if opts != nil {
 		v["business_connection_id"] = opts.BusinessConnectionId
 		if opts.MessageThreadId != 0 {
@@ -4719,15 +4693,13 @@ type SetChatPhotoOpts struct {
 //   - opts (type SetChatPhotoOpts): All optional parameters.
 func (bot *Bot) SetChatPhoto(chatId int64, photo InputFile, opts *SetChatPhotoOpts) (bool, error) {
 	v := map[string]string{}
-	data := map[string]FileReader{}
+	data := map[string]InputFile{}
 	v["chat_id"] = strconv.FormatInt(chatId, 10)
-	if photo != nil {
-		key, err := photo.Attach("photo", data)
-		if err != nil {
-			return false, err
-		}
-		v["photo"] = key
+	key, err := photo.Attach("photo", data)
+	if err != nil {
+		return false, err
 	}
+	v["photo"] = key
 
 	var reqOpts *RequestOpts
 	if opts != nil {
@@ -5326,7 +5298,7 @@ func (bot *Bot) SetStickerPositionInSet(sticker string, position int64, opts *Se
 // SetStickerSetThumbnailOpts is the set of optional fields for Bot.SetStickerSetThumbnail.
 type SetStickerSetThumbnailOpts struct {
 	// A .WEBP or .PNG image with the thumbnail, must be up to 128 kilobytes in size and have a width and height of exactly 100px, or a .TGS animation with a thumbnail up to 32 kilobytes in size (see https://core.telegram.org/stickers#animated-sticker-requirements for animated sticker technical requirements), or a WEBM video with the thumbnail up to 32 kilobytes in size; see https://core.telegram.org/stickers#video-sticker-requirements for video sticker technical requirements. Pass a file_id as a String to send a file that already exists on the Telegram servers, pass an HTTP URL as a String for Telegram to get a file from the Internet, or upload a new one using multipart/form-data. More information on Sending Files: https://core.telegram.org/bots/api#sending-files. Animated and video sticker set thumbnails can't be uploaded via HTTP URL. If omitted, then the thumbnail is dropped and the first sticker is used as the thumbnail.
-	Thumbnail InputFileOrString
+	Thumbnail InputFile
 	// RequestOpts are an additional optional field to configure timeouts for individual requests
 	RequestOpts *RequestOpts
 }
@@ -5340,18 +5312,16 @@ type SetStickerSetThumbnailOpts struct {
 //   - opts (type SetStickerSetThumbnailOpts): All optional parameters.
 func (bot *Bot) SetStickerSetThumbnail(name string, userId int64, format string, opts *SetStickerSetThumbnailOpts) (bool, error) {
 	v := map[string]string{}
-	data := map[string]FileReader{}
+	data := map[string]InputFile{}
 	v["name"] = name
 	v["user_id"] = strconv.FormatInt(userId, 10)
 	v["format"] = format
 	if opts != nil {
-		if opts.Thumbnail != nil {
-			key, err := opts.Thumbnail.Attach("thumbnail", data)
-			if err != nil {
-				return false, err
-			}
-			v["thumbnail"] = key
+		key, err := opts.Thumbnail.Attach("thumbnail", data)
+		if err != nil {
+			return false, err
 		}
+		v["thumbnail"] = key
 	}
 
 	var reqOpts *RequestOpts
@@ -5425,16 +5395,14 @@ type SetWebhookOpts struct {
 //   - opts (type SetWebhookOpts): All optional parameters.
 func (bot *Bot) SetWebhook(url string, opts *SetWebhookOpts) (bool, error) {
 	v := map[string]string{}
-	data := map[string]FileReader{}
+	data := map[string]InputFile{}
 	v["url"] = url
 	if opts != nil {
-		if opts.Certificate != nil {
-			key, err := opts.Certificate.Attach("certificate", data)
-			if err != nil {
-				return false, err
-			}
-			v["certificate"] = key
+		key, err := opts.Certificate.Attach("certificate", data)
+		if err != nil {
+			return false, err
 		}
+		v["certificate"] = key
 		v["ip_address"] = opts.IpAddress
 		if opts.MaxConnections != 0 {
 			v["max_connections"] = strconv.FormatInt(opts.MaxConnections, 10)
@@ -5797,15 +5765,13 @@ type UploadStickerFileOpts struct {
 //   - opts (type UploadStickerFileOpts): All optional parameters.
 func (bot *Bot) UploadStickerFile(userId int64, sticker InputFile, stickerFormat string, opts *UploadStickerFileOpts) (*File, error) {
 	v := map[string]string{}
-	data := map[string]FileReader{}
+	data := map[string]InputFile{}
 	v["user_id"] = strconv.FormatInt(userId, 10)
-	if sticker != nil {
-		key, err := sticker.Attach("sticker", data)
-		if err != nil {
-			return nil, err
-		}
-		v["sticker"] = key
+	key, err := sticker.Attach("sticker", data)
+	if err != nil {
+		return nil, err
 	}
+	v["sticker"] = key
 	v["sticker_format"] = stickerFormat
 
 	var reqOpts *RequestOpts
