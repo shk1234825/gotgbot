@@ -2,7 +2,7 @@ package gotgbot
 
 import (
 	"encoding/json"
-	"fmt"
+	"errors"
 	"io"
 )
 
@@ -58,9 +58,11 @@ type FileReader struct {
 	Data io.Reader
 }
 
+var ErrAttachmentKeyAlreadyExists = errors.New("key already exists")
+
 func (f FileReader) Attach(key string, data map[string]FileReader) (string, error) {
 	if _, ok := data[key]; ok {
-		return "", fmt.Errorf("data key %q already exists", key)
+		return "", ErrAttachmentKeyAlreadyExists
 	}
 	data[key] = f
 	return "attach://" + key, nil
