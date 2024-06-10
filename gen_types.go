@@ -4675,7 +4675,7 @@ func (v InputLocationMessageContent) inputMessageContent() {}
 //   - InputMediaVideo
 type InputMedia interface {
 	GetType() string
-	GetMedia() InputString
+	GetMedia() InputFileOrString
 	// InputParams allows for uploading attachments with files.
 	InputParams(string, map[string]FileReader) ([]byte, error)
 	// MergeInputMedia returns a MergedInputMedia struct to simplify working with complex telegram types in a non-generic world.
@@ -4698,7 +4698,7 @@ type MergedInputMedia struct {
 	// Type of the result
 	Type string `json:"type"`
 	// File to send. Pass a file_id to send a file that exists on the Telegram servers (recommended), pass an HTTP URL for Telegram to get a file from the Internet, or pass "attach://<file_attach_name>" to upload a new one using multipart/form-data under <file_attach_name> name. More information on Sending Files: https://core.telegram.org/bots/api#sending-files
-	Media InputString `json:"media"`
+	Media InputFileOrString `json:"media"`
 	// Optional. Thumbnail of the file sent; can be ignored if thumbnail generation for the file is supported server-side. The thumbnail should be in JPEG format and less than 200 kB in size. A thumbnail's width and height should not exceed 320. Ignored if the file is not uploaded using multipart/form-data. Thumbnails can't be reused and can be only uploaded as a new file, so you can pass "attach://<file_attach_name>" if the thumbnail was uploaded using multipart/form-data under <file_attach_name>. More information on Sending Files: https://core.telegram.org/bots/api#sending-files (Only for animation, document, audio, video)
 	Thumbnail InputFileOrString `json:"thumbnail,omitempty"`
 	// Optional. Caption of the animation to be sent, 0-1024 characters after entities parsing
@@ -4733,7 +4733,7 @@ func (v MergedInputMedia) GetType() string {
 }
 
 // GetMedia is a helper method to easily access the common fields of an interface.
-func (v MergedInputMedia) GetMedia() InputString {
+func (v MergedInputMedia) GetMedia() InputFileOrString {
 	return v.Media
 }
 
@@ -4750,7 +4750,7 @@ func (v MergedInputMedia) MergeInputMedia() MergedInputMedia {
 // Represents an animation file (GIF or H.264/MPEG-4 AVC video without sound) to be sent.
 type InputMediaAnimation struct {
 	// File to send. Pass a file_id to send a file that exists on the Telegram servers (recommended), pass an HTTP URL for Telegram to get a file from the Internet, or pass "attach://<file_attach_name>" to upload a new one using multipart/form-data under <file_attach_name> name. More information on Sending Files: https://core.telegram.org/bots/api#sending-files
-	Media InputString `json:"media"`
+	Media InputFileOrString `json:"media"`
 	// Optional. Thumbnail of the file sent; can be ignored if thumbnail generation for the file is supported server-side. The thumbnail should be in JPEG format and less than 200 kB in size. A thumbnail's width and height should not exceed 320. Ignored if the file is not uploaded using multipart/form-data. Thumbnails can't be reused and can be only uploaded as a new file, so you can pass "attach://<file_attach_name>" if the thumbnail was uploaded using multipart/form-data under <file_attach_name>. More information on Sending Files: https://core.telegram.org/bots/api#sending-files
 	Thumbnail InputFileOrString `json:"thumbnail,omitempty"`
 	// Optional. Caption of the animation to be sent, 0-1024 characters after entities parsing
@@ -4777,7 +4777,7 @@ func (v InputMediaAnimation) GetType() string {
 }
 
 // GetMedia is a helper method to easily access the common fields of an interface.
-func (v InputMediaAnimation) GetMedia() InputString {
+func (v InputMediaAnimation) GetMedia() InputFileOrString {
 	return v.Media
 }
 
@@ -4832,7 +4832,7 @@ func (v InputMediaAnimation) InputParams(mediaName string, data map[string]FileR
 // Represents an audio file to be treated as music to be sent.
 type InputMediaAudio struct {
 	// File to send. Pass a file_id to send a file that exists on the Telegram servers (recommended), pass an HTTP URL for Telegram to get a file from the Internet, or pass "attach://<file_attach_name>" to upload a new one using multipart/form-data under <file_attach_name> name. More information on Sending Files: https://core.telegram.org/bots/api#sending-files
-	Media InputString `json:"media"`
+	Media InputFileOrString `json:"media"`
 	// Optional. Thumbnail of the file sent; can be ignored if thumbnail generation for the file is supported server-side. The thumbnail should be in JPEG format and less than 200 kB in size. A thumbnail's width and height should not exceed 320. Ignored if the file is not uploaded using multipart/form-data. Thumbnails can't be reused and can be only uploaded as a new file, so you can pass "attach://<file_attach_name>" if the thumbnail was uploaded using multipart/form-data under <file_attach_name>. More information on Sending Files: https://core.telegram.org/bots/api#sending-files
 	Thumbnail InputFileOrString `json:"thumbnail,omitempty"`
 	// Optional. Caption of the audio to be sent, 0-1024 characters after entities parsing
@@ -4855,7 +4855,7 @@ func (v InputMediaAudio) GetType() string {
 }
 
 // GetMedia is a helper method to easily access the common fields of an interface.
-func (v InputMediaAudio) GetMedia() InputString {
+func (v InputMediaAudio) GetMedia() InputFileOrString {
 	return v.Media
 }
 
@@ -4908,7 +4908,7 @@ func (v InputMediaAudio) InputParams(mediaName string, data map[string]FileReade
 // Represents a general file to be sent.
 type InputMediaDocument struct {
 	// File to send. Pass a file_id to send a file that exists on the Telegram servers (recommended), pass an HTTP URL for Telegram to get a file from the Internet, or pass "attach://<file_attach_name>" to upload a new one using multipart/form-data under <file_attach_name> name. More information on Sending Files: https://core.telegram.org/bots/api#sending-files
-	Media InputString `json:"media"`
+	Media InputFileOrString `json:"media"`
 	// Optional. Thumbnail of the file sent; can be ignored if thumbnail generation for the file is supported server-side. The thumbnail should be in JPEG format and less than 200 kB in size. A thumbnail's width and height should not exceed 320. Ignored if the file is not uploaded using multipart/form-data. Thumbnails can't be reused and can be only uploaded as a new file, so you can pass "attach://<file_attach_name>" if the thumbnail was uploaded using multipart/form-data under <file_attach_name>. More information on Sending Files: https://core.telegram.org/bots/api#sending-files
 	Thumbnail InputFileOrString `json:"thumbnail,omitempty"`
 	// Optional. Caption of the document to be sent, 0-1024 characters after entities parsing
@@ -4927,7 +4927,7 @@ func (v InputMediaDocument) GetType() string {
 }
 
 // GetMedia is a helper method to easily access the common fields of an interface.
-func (v InputMediaDocument) GetMedia() InputString {
+func (v InputMediaDocument) GetMedia() InputFileOrString {
 	return v.Media
 }
 
@@ -4978,7 +4978,7 @@ func (v InputMediaDocument) InputParams(mediaName string, data map[string]FileRe
 // Represents a photo to be sent.
 type InputMediaPhoto struct {
 	// File to send. Pass a file_id to send a file that exists on the Telegram servers (recommended), pass an HTTP URL for Telegram to get a file from the Internet, or pass "attach://<file_attach_name>" to upload a new one using multipart/form-data under <file_attach_name> name. More information on Sending Files: https://core.telegram.org/bots/api#sending-files
-	Media InputString `json:"media"`
+	Media InputFileOrString `json:"media"`
 	// Optional. Caption of the photo to be sent, 0-1024 characters after entities parsing
 	Caption string `json:"caption,omitempty"`
 	// Optional. Mode for parsing entities in the photo caption. See formatting options for more details.
@@ -4997,7 +4997,7 @@ func (v InputMediaPhoto) GetType() string {
 }
 
 // GetMedia is a helper method to easily access the common fields of an interface.
-func (v InputMediaPhoto) GetMedia() InputString {
+func (v InputMediaPhoto) GetMedia() InputFileOrString {
 	return v.Media
 }
 
@@ -5048,7 +5048,7 @@ func (v InputMediaPhoto) InputParams(mediaName string, data map[string]FileReade
 // Represents a video to be sent.
 type InputMediaVideo struct {
 	// File to send. Pass a file_id to send a file that exists on the Telegram servers (recommended), pass an HTTP URL for Telegram to get a file from the Internet, or pass "attach://<file_attach_name>" to upload a new one using multipart/form-data under <file_attach_name> name. More information on Sending Files: https://core.telegram.org/bots/api#sending-files
-	Media InputString `json:"media"`
+	Media InputFileOrString `json:"media"`
 	// Optional. Thumbnail of the file sent; can be ignored if thumbnail generation for the file is supported server-side. The thumbnail should be in JPEG format and less than 200 kB in size. A thumbnail's width and height should not exceed 320. Ignored if the file is not uploaded using multipart/form-data. Thumbnails can't be reused and can be only uploaded as a new file, so you can pass "attach://<file_attach_name>" if the thumbnail was uploaded using multipart/form-data under <file_attach_name>. More information on Sending Files: https://core.telegram.org/bots/api#sending-files
 	Thumbnail InputFileOrString `json:"thumbnail,omitempty"`
 	// Optional. Caption of the video to be sent, 0-1024 characters after entities parsing
@@ -5077,7 +5077,7 @@ func (v InputMediaVideo) GetType() string {
 }
 
 // GetMedia is a helper method to easily access the common fields of an interface.
-func (v InputMediaVideo) GetMedia() InputString {
+func (v InputMediaVideo) GetMedia() InputFileOrString {
 	return v.Media
 }
 

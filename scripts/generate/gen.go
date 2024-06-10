@@ -322,7 +322,7 @@ func isTgStructType(d APIDescription, goType string) bool {
 func (f Field) getPreferredType(d APIDescription) (string, error) {
 	if f.Name == "media" {
 		if len(f.Types) == 1 && f.Types[0] == "String" {
-			return typeInputString, nil
+			return typeInputFileOrString, nil
 		}
 		var arrayType bool
 		// TODO: check against API description type
