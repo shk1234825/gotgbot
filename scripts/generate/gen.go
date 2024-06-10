@@ -218,13 +218,17 @@ const (
 	tgTypeBoolean = "Boolean"
 	tgTypeFloat   = "Float"
 	tgTypeInteger = "Integer"
-	// These are all custom telegram types.
+
+	// Telegram types which might need special handling.
 	tgTypeMessage    = "Message"
 	tgTypeFile       = "File"
 	tgTypeInputFile  = "InputFile"
 	tgTypeInputMedia = "InputMedia"
-	// This is actually a custom type.
-	tgTypeReplyMarkup = "ReplyMarkup"
+
+	// Custom types for this lib.
+	typeReplyMarkup       = "ReplyMarkup"
+	typeInputFileOrString = "InputFileOrString"
+	typeInputString       = "InputString"
 )
 
 func generate(d APIDescription) error {
@@ -318,7 +322,7 @@ func isTgStructType(d APIDescription, goType string) bool {
 func (f Field) getPreferredType(d APIDescription) (string, error) {
 	if f.Name == "media" {
 		if len(f.Types) == 1 && f.Types[0] == "String" {
-			return tgTypeInputFile, nil
+			return typeInputString, nil
 		}
 		var arrayType bool
 		// TODO: check against API description type
@@ -345,7 +349,7 @@ func (f Field) getPreferredType(d APIDescription) (string, error) {
 			// ReplyKeyboardMarkup
 			// ReplyKeyboardRemove
 			// ForceReply
-			return tgTypeReplyMarkup, nil
+			return typeReplyMarkup, nil
 
 		} else if len(f.Types) == 1 {
 			return toGoType(f.Types[0]), nil
@@ -390,7 +394,7 @@ func (f Field) getPreferredType(d APIDescription) (string, error) {
 
 	if len(f.Types) == 2 {
 		if f.Types[0] == tgTypeInputFile && f.Types[1] == tgTypeString {
-			return toGoType(f.Types[0]), nil
+			return typeInputFileOrString, nil
 		} else if f.Types[0] == tgTypeInteger && f.Types[1] == tgTypeString {
 			return toGoType(f.Types[0]), nil
 		}

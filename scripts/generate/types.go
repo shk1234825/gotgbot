@@ -27,12 +27,11 @@ package gotgbot
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 )
 `)
 
 	// the reply_markup field is weird; this allows it to support multiple types.
-	replyMarkupInterface, err := generateGenericInterfaceType(d, tgTypeReplyMarkup, getReplyMarkupTypes(d))
+	replyMarkupInterface, err := generateGenericInterfaceType(d, typeReplyMarkup, getReplyMarkupTypes(d))
 	if err != nil {
 		return fmt.Errorf("failed to generate reply_markup interface: %w", err)
 	}
@@ -150,7 +149,7 @@ func containsInputFile(d APIDescription, tgType TypeDescription, checked map[str
 			return false, "", err
 		}
 
-		if goType == tgTypeInputFile {
+		if goType == tgTypeInputFile || goType == typeInputFileOrString || goType == typeInputString {
 			return true, f.Name, nil
 		}
 
@@ -281,7 +280,7 @@ func fulfilParentTypeInterfaces(d APIDescription, tgType TypeDescription) (strin
 
 	for _, t := range getReplyMarkupTypes(d) {
 		if tgType.Name == t.Name {
-			typeInterfaces.WriteString(generateGenericInterfaceMethod(tgType.Name, tgTypeReplyMarkup))
+			typeInterfaces.WriteString(generateGenericInterfaceMethod(tgType.Name, typeReplyMarkup))
 			break
 		}
 	}
@@ -451,6 +450,11 @@ func generateStructFields(d APIDescription, fields []Field, constantFields []str
 }
 
 func generateGenericInterfaceType(d APIDescription, name string, subtypes []TypeDescription) (string, error) {
+	// We handle inputfiles manually
+	if name == tgTypeInputFile {
+		return "", nil
+	}
+
 	if len(subtypes) == 0 {
 		return "\ntype " + name + " interface{}", nil
 	}
@@ -481,7 +485,7 @@ func generateGenericInterfaceType(d APIDescription, name string, subtypes []Type
 	}
 	if hasInputFile {
 		bd.WriteString("\n// InputParams allows for uploading attachments with files.")
-		bd.WriteString("\nInputParams(string, map[string]NamedReader) ([]byte, error)")
+		bd.WriteString("\nInputParams(string, map[string]FileReader) ([]byte, error)")
 	}
 
 	if len(commonFields) > 0 && constantField != "" {
@@ -752,24 +756,15 @@ type inputParamsMethodData struct {
 }
 
 const inputParamsMethod = `
-func (v {{.Type}}) InputParams(mediaName string, data map[string]NamedReader) ([]byte, error) {
+func (v {{.Type}}) InputParams(mediaName string, data map[string]FileReader) ([]byte, error) {
 	if v.{{.Field}} != nil {
-		switch m := v.{{.Field}}.(type) {
-		case string:
-			// ok, noop
-
-		case NamedReader:
-			v.{{.Field}} = "attach://" + mediaName
-			data[mediaName] = m
-
-		case io.Reader:
-			v.{{.Field}} = "attach://" + mediaName
-			data[mediaName] = NamedFile{File: m}
-
-		default:
-			return nil, fmt.Errorf("unknown type: %T", v.{{.Field}})
+		key, err := v.{{.Field}}.Attach(mediaName, data)
+		if err != nil {
+			return nil, err
 		}
-	}
+		// Now that we've attached the file as a piece of data, we can pass in its file reference.
+		v.{{.Field}} = FileString{Value: key}
+	} 
 	
 	return json.Marshal(v)
 }
